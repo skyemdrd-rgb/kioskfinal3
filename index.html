@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSC Kiosk Directory</title>
+
+<style>
+
+#app{
+  position:absolute;
+  will-change: transform;
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial, Helvetica, sans-serif;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#edf1f5;
+}
+
+#app{
+  position:absolute;
+  width:3840px;
+  height:2160px;
+  
+  overflow:hidden;
+}
+
+#loader{
+  position:fixed;
+  inset:0;
+  background:black;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:60px;
+  z-index:99999;
+}
+
+.screen{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  pointer-events:none;
+  transition:.3s;
+}
+
+.screen.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+.background,
+.video-bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+
+.background{
+  background-size:cover;
+  background-position:center;
+}
+
+.video-bg{
+  object-fit:cover;
+}
+
+.hotspot{
+  position:absolute;
+  z-index:10;
+  cursor:pointer;
+}
+
+body.debug .hotspot{
+  background:rgba(255,0,0,.15);
+  border:2px dashed red;
+}
+
+/* HOTSPOTS */
+
+.startHotspot{
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
+}
+
+.home{
+  left:14%;
+  width:21.67%;
+  height:23.67%;
+  bottom:0;
+}
+
+.guide{
+  left:38.3%;
+  width:25.32%;
+  height:23.67%;
+  bottom:0;
+}
+
+.about{
+  left:64.2%;
+  width:24.32%;
+  height:23.67%;
+  bottom:0;
+}
+
+.clinic{
+  top:14%;
+  left:6%;
+  width:31%;
+  height:22%;
+}
+
+.chaplain{
+  top:14%;
+  left:42%;
+  width:30%;
+  height:22%;
+}
+
+.resto{
+  top:39%;
+  left:40.5%;
+  width:32%;
+  height:22%;
+}
+
+.dept{
+  top:65.7%;
+  left:6%;
+  width:31.5%;
+  height:21.2%;
+}
+
+.mapBtn{
+  bottom:14%;
+  left:40.5%;
+  width:31.5%;
+  height:18%;
+}
+
+.aboutSide{
+  top:6%;
+  right:0%;
+  width:11.5%;
+  height:28.33%;
+}
+
+.guideSide{
+  top:36%;
+  right:0%;
+  width:11.5%;
+  height:28.33%;
+}
+
+.homeSide{
+  top:65.66%;
+  right:0%;
+  width:11.5%;
+  height:28.33%;
+}
+
+.backHome{
+  bottom:0%;
+  right:0%;
+  width:5.5%;
+  height:10%;
+}
+
+.bigbackHome{
+  bottom:3%;
+  right:0%;
+  width:10.5%;
+  height:16%;
+}
+
+/* MAP */
+
+.container{
+  width:100%;
+  height:100%;
+  display:flex;
+}
+
+.sidebar{
+  width:620px;
+  background:white;
+  border-right:2px solid #dbe2ea;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  background:#0d3b8f;
+  color:white;
+  padding:35px;
+}
+
+.header h1{
+  font-size:38px;
+}
+
+.header p{
+  margin-top:10px;
+  color:#d7e5ff;
+}
+
+.sidebar-content{
+  padding:24px;
+  overflow-y:auto;
+  flex:1;
+}
+
+.destination{
+  background:white;
+  border:2px solid #dbe2ea;
+  padding:32px;
+  border-radius:32px;
+  margin-bottom:24px;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:48px;
+  transition:.2s;
+}
+
+.map-area{
+  flex:1;
+  position:relative;
+  padding:42px;
+}
+
+.top-bar{
+  position:absolute;
+  top:34px;
+  right:34px;
+  background:white;
+  padding:18px 26px;
+  border-radius:48px;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  z-index:20;
+  font-size:24px;
+  font-weight:bold;
+  box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+.switch-btn{
+  border:none;
+  background:#0d3b8f;
+  color:white;
+  padding:16px 24px;
+  border-radius:32px;
+  font-size:20px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.map-container{
+  width:100%;
+  height:100%;
+  background:white;
+  border-radius:38px;
+  overflow:hidden;
+  position:relative;
+  padding:18px;
+}
+
+.map-container img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+
+/* MAP FADE ANIMATION */
+
+.map-fade{
+  animation:mapFade .35s ease;
+}
+
+@keyframes mapFade{
+
+  from{
+    opacity:0;
+    transform:scale(0.98);
+  }
+
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+
+}
+
+.floor-sidebar{
+  position: absolute;
+
+  bottom:40px;
+  left:20%;
+
+  transform:translateX(-50%);
+
+  display:flex;
+  gap:20px;
+
+  z-index:30;
+}
+
+.floor-btn{
+  width:110px;
+  height:110px;
+
+  border:none;
+
+  border-radius:24px;
+
+  background:rgba(255,255,255,0.65);
+
+  backdrop-filter:blur(10px);
+
+  color:#0d3b8f;
+
+  font-size:38px;
+  font-weight:800;
+
+  cursor:pointer;
+  
+  opacity: 70%;
+
+  box-shadow:0 5px 15px rgba(0,0,0,0.15);
+
+  transition:.2s;
+}
+
+.marker{
+  position:absolute;
+  width:26px;
+  height:26px;
+  background:red;
+  border-radius:50%;
+  border:5px solid white;
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 0 12px rgba(255,0,0,0.25);
+  display:none;
+  z-index:50;
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+  0%{ transform:translate(-50%,-50%) scale(1); }
+  50%{ transform:translate(-50%,-50%) scale(1.2); }
+  100%{ transform:translate(-50%,-50%) scale(1); }
+}
+
+/* CLINICS BUTTONS */
+
+.dentalBtn{
+  top:22%;
+  left:12%;
+  width:24%;
+  height:16%;
+}
+
+.entBtn{
+  top:22%;
+  left:38%;
+  width:24%;
+  height:16%;
+}
+
+.obBtn{
+  top:22%;
+  left:64%;
+  width:24%;
+  height:16%;
+}
+
+.pediaBtn{
+  top:43%;
+  left:12%;
+  width:24%;
+  height:16%;
+}
+
+.radioBtn{
+  top:43%;
+  left:38%;
+  width:24%;
+  height:16%;
+}
+
+.rehabBtn{
+  top:43%;
+  left:64%;
+  width:24%;
+  height:16%;
+}
+
+.internalBtn{
+  top:64%;
+  left:12%;
+  width:24%;
+  height:16%;
+}
+
+.ophthaBtn{
+  top:64%;
+  left:38%;
+  width:24%;
+  height:16%;
+}
+
+.surgeryBtn{
+  top:64%;
+  left:64%;
+  width:24%;
+  height:16%;
+}
+
+/* INTERNAL MEDICINE PAGE BUTTONS */
+
+.internalNext{
+  right:0%;
+  bottom:10%;
+
+  width:5.5%;
+  height:7%;
+}
+
+.internalPrev{
+  right:0%;
+  bottom:18%;
+
+  width:5.5%;
+  height:7%;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="loader">Loading...</div>
+
+<div id="app">
+
+<!-- START -->
+
+<div id="startScreen" class="screen active">
+  <video class="video-bg" autoplay muted loop playsinline>
+    <source src="idle.mp4" type="video/mp4">
+  </video>
+
+  <div class="hotspot startHotspot" onclick="goHome()"></div>
+</div>
+
+<!-- HOME -->
+
+<div id="homeScreen" class="screen">
+
+  <div class="background" style="background-image:url('home.png')"></div>
+
+  <div class="hotspot home" onclick="goHome()"></div>
+  <div class="hotspot guide" onclick="goGuide()"></div>
+  <div class="hotspot about" onclick="showScreen('aboutScreen')"></div>
+
+</div>
+
+<!-- ABOUT -->
+
+<div id="aboutScreen" class="screen">
+
+  <div class="background" style="background-image:url('about.jpg')"></div>
+
+  <div class="hotspot backHome" onclick="goHome()"></div>
+
+</div>
+
+<!-- GUIDE -->
+
+<div id="guideScreen" class="screen">
+
+  <div class="background" style="background-image:url('guide.jpg')"></div>
+
+  <div class="hotspot clinic" onclick="showScreen('clinicsScreen')"></div>
+  <div class="hotspot chaplain" onclick="showScreen('chaplainScreen')"></div>
+  <div class="hotspot resto" onclick="showScreen('restaurantScreen')"></div>
+  <div class="hotspot dept" onclick="showScreen('departmentScreen')"></div>
+  <div class="hotspot mapBtn" onclick="showScreen('mapScreen')"></div>
+
+  <div class="hotspot aboutSide" onclick="showScreen('aboutScreen')"></div>
+  <div class="hotspot guideSide" onclick="goGuide()"></div>
+  <div class="hotspot homeSide" onclick="goHome()"></div>
+
+</div>
+
+<!-- DEPARTMENT SCREEN -->
+
+<div id="departmentScreen" class="screen">
+
+  <div class="background"
+       style="background-image:url('department.jpg')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="goGuide()">
+  </div>
+
+</div>
+
+<!-- RESTAURANT SCREEN -->
+
+<div id="restaurantScreen" class="screen">
+
+  <div class="background"
+       style="background-image:url('restaurant.jpg')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="goGuide()">
+  </div>
+
+</div>
+
+</div>
+
+<div id="chaplainScreen" class="screen">
+
+  <div class="background"
+       style="background-image:url('chaplain.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="goGuide()">
+  </div>
+
+</div>
+
+<div id="clinicsScreen" class="screen">
+
+  <div class="background"
+       style="background-image:url('clinics.png')">
+  </div>
+
+  <div class="hotspot bigbackHome" onclick="goGuide()"></div>
+  
+  <!-- CLINIC BUTTONS -->
+
+  <div class="hotspot dentalBtn"
+     onclick="showScreen('dentistryScreen')"></div>
+
+  <div class="hotspot entBtn"
+     onclick="showScreen('entScreen')"></div>
+
+  <div class="hotspot obBtn"
+     onclick="showScreen('obgyneScreen')"></div>
+
+  <div class="hotspot pediaBtn"
+     onclick="showScreen('pediatricsScreen')"></div>
+
+  <div class="hotspot radioBtn"
+     onclick="showScreen('radiationScreen')"></div>
+
+  <div class="hotspot rehabBtn"
+     onclick="showScreen('rehabScreen')"></div>
+
+  <div class="hotspot internalBtn"
+     onclick="showScreen('internalMedicineScreen')"></div>
+
+  <div class="hotspot ophthaBtn"
+     onclick="showScreen('ophthalmologyScreen')"></div>
+
+  <div class="hotspot surgeryBtn"
+     onclick="showScreen('surgeryScreen')"></div>
+
+</div>
+
+<div id="dentistryScreen" class="screen">
+  <div class="background"
+       style="background-image:url('dentistry.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+<div id="entScreen" class="screen">
+  <div class="background"
+       style="background-image:url('ent.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+<div id="obgyneScreen" class="screen">
+  <div class="background"
+       style="background-image:url('obgyne.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+<div id="pediatricsScreen" class="screen">
+  <div class="background"
+       style="background-image:url('pediatrics.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+<div id="radiationScreen" class="screen">
+  <div class="background"
+       style="background-image:url('radiation.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+<div id="rehabScreen" class="screen">
+  <div class="background"
+       style="background-image:url('rehab.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+<!-- INTERNAL MEDICINE PAGE 1 -->
+
+<div id="internalMedicineScreen" class="screen">
+
+  <div class="background"
+       style="background-image:url('internal1.png')">
+  </div>
+
+  <!-- PAGE BUTTON -->
+
+  <div class="hotspot internalNext"
+       onclick="showScreen('internalMedicineScreen2')">
+  </div>
+
+  <!-- BACK BUTTON -->
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+
+</div>
+
+<!-- INTERNAL MEDICINE PAGE 2 -->
+
+<div id="internalMedicineScreen2" class="screen">
+
+  <div class="background"
+       style="background-image:url('internal2.png')">
+  </div>
+
+  <!-- PAGE BUTTON -->
+
+  <div class="hotspot internalPrev"
+       onclick="showScreen('internalMedicineScreen')">
+  </div>
+
+  <!-- BACK BUTTON -->
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+
+</div>
+
+<div id="surgeryScreen" class="screen">
+  <div class="background"
+       style="background-image:url('surgery.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+<div id="ophthalmologyScreen" class="screen">
+  <div class="background"
+       style="background-image:url('ophtamology.png')">
+  </div>
+
+  <div class="hotspot backHome"
+       onclick="showScreen('clinicsScreen')">
+  </div>
+</div>
+
+
+<!-- MAP -->
+
+<div id="mapScreen" class="screen">
+
+  <div class="container">
+
+    <aside class="sidebar">
+
+      <div class="header">
+        <h1>Hospital Directory</h1>
+        <p>Interactive Kiosk Navigation</p>
+      </div>
+
+      <div class="sidebar-content" id="destinations"></div>
+
+    </aside>
+
+    <main class="map-area">
+
+      <div class="top-bar">
+        <button class="switch-btn" onclick="goGuide()">Back</button>
+        Touch a destination
+        <button class="switch-btn" onclick="switchMap()">Switch Building</button>
+      </div>
+
+      <div class="map-container">
+
+        <img id="mapImage" src="msc-map.png">
+
+        <div id="marker" class="marker"></div>
+
+      </div>
+
+      <div class="floor-sidebar">
+        <button class="floor-btn" onclick="changeFloor(1)">1F</button>
+        <button class="floor-btn" onclick="changeFloor(2)">2F</button>
+        <button class="floor-btn" onclick="changeFloor(3)">3F</button>
+        <button class="floor-btn" id="floor4" onclick="changeFloor(4)">4F</button>
+      </div>
+
+    </main>
+
+  </div>
+
+</div>
+
+</div>
+
+<script>
+
+window.addEventListener('load', ()=>{
+
+  const app = document.getElementById('app');
+  const loader = document.getElementById('loader');
+  const screens = document.querySelectorAll('.screen');
+
+  /* =========================
+     4K RESPONSIVE SCALE
+  ========================= */
+
+  function scaleApp(){
+
+  const baseWidth = 3840;
+  const baseHeight = 2160;
+
+  const windowWidth = window.innerWidth;
+  const windowHeight = window.innerHeight;
+
+  const scaleX = windowWidth / baseWidth;
+  const scaleY = windowHeight / baseHeight;
+
+  // ✅ FIX: use MIN to fit entire UI
+  const scale = Math.min(scaleX, scaleY);
+
+  app.style.width = baseWidth + 'px';
+  app.style.height = baseHeight + 'px';
+
+  app.style.transform = `scale(${scale})`;
+  app.style.transformOrigin = 'top left';
+
+  const scaledWidth = baseWidth * scale;
+  const scaledHeight = baseHeight * scale;
+
+  // ✅ PERFECT CENTERING
+  app.style.position = 'absolute';
+  app.style.left = ((windowWidth - scaledWidth) / 2) + 'px';
+  app.style.top = ((windowHeight - scaledHeight) / 2) + 'px';
+}
+
+
+  window.addEventListener('resize', scaleApp);
+
+  /* =========================
+     SCREEN NAVIGATION
+  ========================= */
+
+  window.showScreen = function(id){
+
+    screens.forEach(screen=>{
+      screen.classList.remove('active');
+    });
+
+    const target = document.getElementById(id);
+
+    if(target){
+      target.classList.add('active');
+    }
+  };
+
+  window.goHome = function(){
+    showScreen('homeScreen');
+  };
+
+  window.goGuide = function(){
+    showScreen('guideScreen');
+  };
+
+  /* =========================
+     MAP SYSTEM
+  ========================= */
+
+  const mapImage = document.getElementById('mapImage');
+  const marker = document.getElementById('marker');
+  const destinations = document.getElementById('destinations');
+
+  let currentMap = 'new';
+  let currentFloor = 1;
+
+  const floors = {
+
+    old: {
+
+      1: {
+        image: 'old-building-map.png',
+        destinations: [
+
+          ['Dietary',34,31],
+          ['Purchasing Office',39,10],
+          ['ER',20,74],
+          ['OPD',28,84],
+          ['Chapel',39,69],
+          ['Laboratory',44,49],
+          ['Drug Testing Lab',38,48],
+          ['Medical Social Service',26,60],
+          ['Medical Imaging',30 ,58],
+          ['Pharmacy',49,76],
+          ['Admin Office',36,85],
+          ['Business Office',47,86],
+          ['MIS',61,18],
+          ['HR Office',61,38],
+          ['Training Room',70,18],
+          ['Doctors Quarter',76,56],
+          ['Medical Record',68,66],
+          ['Photocopy',73,66],
+          ['Dorms',78,80],
+          ['MSC Entrance',74,6],
+          ['ATM',54,93]
+
+        ]
+      },
+
+      2: {
+        image: 'old-building-2nd-floor.png',
+        destinations: [
+
+          ['PICU',30,35],
+          ['ICU',30,55],
+          ['OR',12,85],
+          ['Gastrointestinal Center',18,75],
+          ['Bridge to new building',88,10],
+
+        ]
+      },
+
+      3: {
+        image: 'old-building-3rd-floor.png',
+        destinations: [
+
+          
+        ]
+      }
+
+    },
+
+    new: {
+
+      1:{
+        image:'msc-map.png',
+        destinations:[
+
+          ['Canteen',21,24],
+          ['Eye Surgi Center',22,36],
+          ['ACES',23,50],
+          ['Rehabilitation Center',43,36],
+          ['Hemodialysis Center',40,50],
+          ['Elevator',61,61],
+          ['Sleep Lab',30,76],
+          ['Cardiovascular Center',40,76],
+          ['Med Express',50,76],
+          ['Cashier Satellite',74,53],
+          ['Kraft & Kettle',80,53],
+          ['Cancer Center',93,74],
+          ['Wound Care Center',76,76],
+          ['PH Heart Office',84,76]
+        ]
+      },
+
+      2:{
+        image:'msc-2nd-floor.png',
+        destinations:[
+          ['DR Clinics',15,42],
+          ['Elevator',64,45]
+        ]
+      },
+
+      3:{
+        image:'msc-3rd-floor.png',
+        destinations:[
+          ['Executive Office',25,45],
+          ['Board Room',60,55]
+        ]
+      },
+
+      4:{
+        image:'msc-4th-floor.png',
+        destinations:[
+          ['Nuclear Medicine Center',20,45],
+          ['Hearing Center',45,18]
+        ]
+      }
+
+    }
+
+  };
+
+  function renderDestinations(){
+
+    const data = floors[currentMap][currentFloor];
+
+    if(!data) return;
+
+    mapImage.src = data.image;
+
+    destinations.innerHTML = '';
+
+    data.destinations.forEach(item=>{
+
+      const button = document.createElement('div');
+
+      button.className = 'destination';
+
+      button.innerText = item[0];
+
+      button.onclick = ()=>{
+        showWaypoint(item[1], item[2]);
+      };
+
+      destinations.appendChild(button);
+
+    });
+  }
+
+  window.showWaypoint = function(x,y){
+
+    marker.style.display = 'block';
+
+    marker.style.left = x + '%';
+    marker.style.top = y + '%';
+  };
+
+  window.changeFloor = function(floor){
+
+    currentFloor = floor;
+
+    if(currentMap === 'old' && floor === 4){
+      currentFloor = 1;
+    }
+
+    const floor4Btn = document.getElementById('floor4');
+
+    floor4Btn.style.display =
+      currentMap === 'new'
+      ? 'block'
+      : 'none';
+
+    marker.style.display = 'none';
+
+    renderDestinations();
+  };
+
+  window.switchMap = function(){
+
+    currentMap =
+      currentMap === 'old'
+      ? 'new'
+      : 'old';
+
+    if(currentMap === 'old' && currentFloor === 4){
+      currentFloor = 1;
+    }
+
+    changeFloor(currentFloor);
+  };
+
+  renderDestinations();
+
+  loader.style.display = 'none';
+
+
+  /* =========================
+   IDLE TIMER
+========================= */
+
+let idleTimer;
+
+function resetIdleTimer(){
+
+  clearTimeout(idleTimer);
+
+  idleTimer = setTimeout(()=>{
+
+    showScreen('startScreen');
+
+  }, 30000); // 30 seconds
+
+}
+
+/* USER ACTIVITY */
+
+document.addEventListener('mousemove', resetIdleTimer);
+document.addEventListener('mousedown', resetIdleTimer);
+document.addEventListener('touchstart', resetIdleTimer);
+document.addEventListener('click', resetIdleTimer);
+document.addEventListener('keydown', resetIdleTimer);
+
+/* START TIMER */
+
+resetIdleTimer();
+
+
+
+});
+
+
+
+</script>
+
+</body>
+</html>
