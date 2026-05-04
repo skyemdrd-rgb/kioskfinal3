@@ -7,6 +7,24 @@
 
 <style>
 
+/* REMOVE BLUE TAP HIGHLIGHT */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* REMOVE FOCUS OUTLINE */
+.hotspot,
+button,
+div {
+  outline: none;
+}
+
+/* ALSO REMOVE ACTIVE FLASH */
+.hotspot:active,
+button:active {
+  outline: none;
+}
+  
 #app{
   position:fixed;   /* 🔥 important */
   top:0;
