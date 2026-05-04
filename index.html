@@ -8,7 +8,14 @@
 <style>
 
 #app{
-  position:absolute;
+  position:fixed;   /* 🔥 important */
+  top:0;
+  left:0;
+
+  width:3840px;
+  height:2160px;
+
+  transform-origin: top left;
   will-change: transform;
 }
 
@@ -780,25 +787,19 @@ window.addEventListener('load', ()=>{
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
 
-  const scaleX = windowWidth / baseWidth;
-  const scaleY = windowHeight / baseHeight;
-
-  // ✅ FIX: use MIN to fit entire UI
-  const scale = Math.min(scaleX, scaleY);
-
-  app.style.width = baseWidth + 'px';
-  app.style.height = baseHeight + 'px';
-
-  app.style.transform = `scale(${scale})`;
-  app.style.transformOrigin = 'top left';
+  const scale = Math.min(
+    windowWidth / baseWidth,
+    windowHeight / baseHeight
+  );
 
   const scaledWidth = baseWidth * scale;
   const scaledHeight = baseHeight * scale;
 
-  // ✅ PERFECT CENTERING
-  app.style.position = 'absolute';
-  app.style.left = ((windowWidth - scaledWidth) / 2) + 'px';
-  app.style.top = ((windowHeight - scaledHeight) / 2) + 'px';
+  app.style.transform = `scale(${scale})`;
+
+  // 🔥 CENTER PERFECTLY (NO DRIFT)
+  app.style.left = `${(windowWidth - scaledWidth) / 2}px`;
+  app.style.top  = `${(windowHeight - scaledHeight) / 2}px`;
 }
 
 
